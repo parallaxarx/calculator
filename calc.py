@@ -1,6 +1,6 @@
 """
 Приложение "Калькулятор"
-5
+
 Автор: Ощепков Евгений
 """
 import sys
@@ -39,10 +39,21 @@ wb = (wr - wlhis - 3*board)//cntCol #...........................................
 
 
 def factor(x): # Факториал (х!)
+# ---------------------- Полезные функции --------------------------------------
+# X-Факториал (х!)
+def factor(x):
     if x > 1:
         return(x*factor(x-1))
     else:
         return(1)
+# Корень из х
+def sqrt(x):
+    return(x**(1/2))
+# 1/х
+def devision(x):
+    return(1/x)
+# Экспонента
+def exp(x):
 
 class Main(QWidget):
     def __init__(self):
@@ -55,17 +66,23 @@ class Main(QWidget):
 
         # -----------------------Список кнопок----------------------------------
         # Массив текста кнопок +++++++++++++++++++++++++++++++++++++++++++++++++
-        buttonList =   [['+','-','×','/','C'],
+        self.buttonList =   [['+','-','×','÷','C'],
                         ['7','8','9','±','<'],
-                        ['4','5','6','x²','xʸ'],
-                        ['1','2','3','x!','Mod'],
-                        ['.','0','10ˣ','^','='],]
+                        ['4','5','6','(',')'],
+                        ['1','2','3','x²','xʸ'],
+                        ['.','0','10ˣ','↑','='],]
+
+        self.buttonListAdditional =   [['+','-','×','÷','C'],
+                                       ['7','8','9','±','<'],
+                                       ['4','5','6','(',')'],
+                                       ['1','2','3','√x','⅟ₓ'],
+                                       ['.','0','eˣ','↓','='],]
         # Массив кнопок ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        btn =           [['','','','',''],
-                         ['','','','',''],
-                         ['','','','',''],
-                         ['','','','',''],
-                         ['','','','',''],]
+        self.btn =           [['','','','',''],
+                              ['','','','',''],
+                              ['','','','',''],
+                              ['','','','',''],
+                              ['','','','',''],]
         # ------------------------- Стили --------------------------------------
         self.setStyleSheet("""
             QWidget {
@@ -109,11 +126,11 @@ class Main(QWidget):
         # ------------------------Создание кнопок-------------------------------
         for r in range(cntRow):
             for c in range(cntCol):
-                btn[r][c] = QPushButton(buttonList[c][r],self)
-                btn[r][c].resize(wb,hb)
-                btn[r][c].move(board + r*(wb), board + hl + c*(hb+1))
-                btn[r][c].clicked.connect(self.calc)
-                btn[r][c].setFont(QFont('SansSerif',size//6))
+                self.btn[r][c] = QPushButton(self.buttonList[r][c],self)
+                self.btn[r][c].resize(wb,hb)
+                self.btn[r][c].move(board + c*(wb), board + hl + r*(hb+1))
+                self.btn[r][c].clicked.connect(self.calc)
+                self.btn[r][c].setFont(QFont('SansSerif',size//5))
     # ++++++++++++++++++++++++++ Функционал ++++++++++++++++++++++++++++++++++++
     def calc(self):
         sender = self.sender()
@@ -129,7 +146,7 @@ class Main(QWidget):
             if key == '.':                                                      ##исключение добавить
                 if key not in self.labelMn.text():
                     self.labelMx.setText(self.labelMx.text() + key)
-            else:
+            elif key in '1234567890':
                 self.labelMx.setText(self.labelMx.text() + key)
         # Основной функционал (работает) ***************************************
         elif key in '+-×/':
