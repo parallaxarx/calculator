@@ -1,6 +1,6 @@
 """
 Приложение "Калькулятор"
-5
+
 Автор: Ощепков Евгений
 """
 import sys
@@ -37,12 +37,23 @@ hb = (hr - hl - 2*board)//cntRow #..............................................
 wb = (wr - wlhis - 3*board)//cntCol #............................................ Ширина кнопок
 # ------------------------------------------------------------------------------
 
-
-def factor(x): # Факториал (х!)
+# ---------------------- Полезные функции --------------------------------------
+# X-Факториал (х!)
+def factor(x):
     if x > 1:
         return(x*factor(x-1))
     else:
         return(1)
+# Корень из х
+def sqrt(x):
+    return(x**(1/2))
+# 1/х
+def devision(x):
+    return(1/x)
+# Экспонента
+def exp(x):
+    return(eNumber**x)
+#-------------------------------------------------------------------------------
 
 class Main(QWidget):
     def __init__(self):
@@ -55,17 +66,23 @@ class Main(QWidget):
 
         # -----------------------Список кнопок----------------------------------
         # Массив текста кнопок +++++++++++++++++++++++++++++++++++++++++++++++++
-        buttonList =   [['+','-','×','/','C'],
+        self.buttonList =   [['+','-','×','÷','C'],
                         ['7','8','9','±','<'],
-                        ['4','5','6','x²','xʸ'],
-                        ['1','2','3','x!','Mod'],
-                        ['.','0','10ˣ','^','='],]
+                        ['4','5','6','(',')'],
+                        ['1','2','3','x²','xʸ'],
+                        ['.','0','10ˣ','↑','='],]
+
+        self.buttonListAdditional =   [['+','-','×','÷','C'],
+                                       ['7','8','9','±','<'],
+                                       ['4','5','6','(',')'],
+                                       ['1','2','3','√x','⅟ₓ'],
+                                       ['.','0','eˣ','↓','='],]
         # Массив кнопок ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        btn =           [['','','','',''],
-                         ['','','','',''],
-                         ['','','','',''],
-                         ['','','','',''],
-                         ['','','','',''],]
+        self.btn =           [['','','','',''],
+                              ['','','','',''],
+                              ['','','','',''],
+                              ['','','','',''],
+                              ['','','','',''],]
         # ------------------------- Стили --------------------------------------
         self.setStyleSheet("""
             QWidget {
@@ -109,11 +126,11 @@ class Main(QWidget):
         # ------------------------Создание кнопок-------------------------------
         for r in range(cntRow):
             for c in range(cntCol):
-                btn[r][c] = QPushButton(buttonList[c][r],self)
-                btn[r][c].resize(wb,hb)
-                btn[r][c].move(board + r*(wb), board + hl + c*(hb+1))
-                btn[r][c].clicked.connect(self.calc)
-                btn[r][c].setFont(QFont('SansSerif',size//6))
+                self.btn[r][c] = QPushButton(self.buttonList[r][c],self)
+                self.btn[r][c].resize(wb,hb)
+                self.btn[r][c].move(board + c*(wb), board + hl + r*(hb+1))
+                self.btn[r][c].clicked.connect(self.calc)
+                self.btn[r][c].setFont(QFont('SansSerif',size//5))
     # ++++++++++++++++++++++++++ Функционал ++++++++++++++++++++++++++++++++++++
     def calc(self):
         sender = self.sender()
@@ -129,7 +146,7 @@ class Main(QWidget):
             if key == '.':                                                      ##исключение добавить
                 if key not in self.labelMn.text():
                     self.labelMx.setText(self.labelMx.text() + key)
-            else:
+            elif key in '1234567890':
                 self.labelMx.setText(self.labelMx.text() + key)
         # Основной функционал (работает) ***************************************
         elif key in '+-×/':
@@ -145,20 +162,32 @@ class Main(QWidget):
                 else:
                     self.labelMn.setText(textMx + key)
                 self.labelMx.clear()
+            elif textMn[-1] == ')':
+                self.labelMn.setText(textMn + key)
         # Счёт (работает) ******************************************************
         elif key == '=':
-            if self.labelMx.text() != '' and '=' not in textMn:
-                score = textMn + textMx
-                score = '*'.join(score.split('×'))
-                score = '**'.join(score.split('^'))
-                result = eval(score)
-                if '-' not in textMx:
-                    self.labelMn.setText(textMn + textMx + key) #
-#
-                else: #
-                    self.labelMn.setText(textMn + '(' + textMx + ')' + key) #
-                self.labelMx.setText(str(result)) #
-                self.labelHis.setText(self.labelHis.text() + self.labelMn.text() + self.labelMx.text() + "\n")
+            if '=' not in textMn:
+                if textMx != '':
+                    if textMn[-1] == ')':
+                        score = textMn + '×' + textMx
+                        text = score
+                    else:
+                        score = textMn + textMx
+                    score = '*'.join(score.split('×'))
+                    score = '**'.join(score.split('^'))
+                    score = '/'.join(score.split('÷'))
+                    result = eval(score)
+                    if '-' not in textMx:
+                        self.labelMn.setText(text + key) ##
+                    else:
+                        if textMn[-1] == ')':
+                            self.labelMn.setText(textMn + '×(' + textMx + ')' + key)
+                        else:
+                            self.labelMn.setText(textMn + '(' + textMx + ')' + key)
+                    self.labelMx.setText(str(result)) #
+                    self.labelHis.setText(self.labelHis.text() + text + "\n")
+                # elif textMn[-1] == ')':
+                #     score = textMn + '×' + textMx
         # Очистка окна (работает) **********************************************
         elif key == 'C':
             self.labelMn.clear()
@@ -168,7 +197,7 @@ class Main(QWidget):
             self.labelMx.setText(textMx[:-1])
         # Смена знака (работает) ***********************************************
         elif key == '±':
-            if '-' not in textMx:
+            if ('-' not in textMx) and (textMx != ''):
                 self.labelMx.setText('-' + textMx)
             else:
                 self.labelMx.setText(textMx[1:])
@@ -189,10 +218,10 @@ class Main(QWidget):
                 else:
                     self.labelMn.setText(textMx + '^')
                 self.labelMx.clear()
-        # ОСтаток от деления (Mod) (Работает)***********************************
-        elif key == "Mod":
-            self.labelMn.setText(textMn + textMx + "%")
-            self.labelMx.clear()
+        # ОСтаток от деления (Mod) (Работает)*********************************** убран из функционала
+        # elif key == "Mod":
+        #     self.labelMn.setText(textMn + textMx + "%")
+        #     self.labelMx.clear()
         # 10^x (Работает) ******************************************************
         elif key == "10ˣ" and textMx != "":
             self.labelMx.setText(str(10**float(textMx)))
@@ -203,10 +232,38 @@ class Main(QWidget):
                     self.labelMx.setText(str(factor(int(textMx))))
                 except Exception as e:
                     raise
-
-        # Дополнительный функционал ********************************************
-        elif key == "^":
-            key
+        # Корень (работает) ****************************************************
+        elif key == "√x":
+            self.labelMx.setText(str(sqrt(float(self.labelMx.text()))))
+        # 1/х (работает) *******************************************************
+        elif key == "⅟ₓ":
+            self.labelMx.setText(str(devision(float(self.labelMx.text()))))
+        # Экспонента (не работает) ********************************************* Исправить ошибку
+        elif key == "eˣ":
+            self.labelMx.setText(str(exp(float(self.labelMx.text()))))
+        # Скобки (работает) ****************************************************
+        elif key == "(":
+            self.labelMn.setText(textMn + '(')
+        elif key == ")":
+            countOpenBrackets = 0
+            countClosedBrackets = 0
+            for i in range(len(textMn)):
+                if textMn[i] == '(':
+                    countOpenBrackets += 1
+                elif textMn[i] == ')':
+                    countClosedBrackets += 1
+            if countClosedBrackets < countOpenBrackets:
+                self.labelMn.setText(textMn + textMx + ')')
+                self.labelMx.setText('')
+        # Смена функционала (работает) *****************************************
+        elif key == "↑":
+            for r in range(cntRow):
+                for c in range(cntCol):
+                    self.btn[r][c].setText(self.buttonListAdditional[r][c])
+        elif key == "↓":
+            for r in range(cntRow):
+                for c in range(cntCol):
+                    self.btn[r][c].setText(self.buttonList[r][c])
         ########################################################################
 
 if __name__ == '__main__':
